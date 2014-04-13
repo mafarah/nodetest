@@ -1,25 +1,43 @@
-set :application, "set your application name here"
-set :repository,  "set your repository location here"
+role :app, "107.170.233.115"                          # This may be the same as your `Web` server
 
-# set :scm, :git # You can set :scm explicitly or Capistrano will make an intelligent guess based on known version control directory names
-# Or: `accurev`, `bzr`, `cvs`, `darcs`, `git`, `mercurial`, `perforce`, `subversion` or `none`
-
-role :web, "your web-server here"                          # Your HTTP server, Apache/etc
-role :app, "your app-server here"                          # This may be the same as your `Web` server
-role :db,  "your primary db-server here", :primary => true # This is where Rails migrations will run
-role :db,  "your slave db-server here"
-
-# if you want to clean up old releases on each deploy uncomment this:
-# after "deploy:restart", "deploy:cleanup"
-
-# if you're still using the script/reaper helper you will need
-# these http://github.com/rails/irs_process_scripts
-
-# If you are using Passenger mod_rails uncomment this:
-# namespace :deploy do
-#   task :start do ; end
-#   task :stop do ; end
-#   task :restart, :roles => :app, :except => { :no_release => true } do
-#     run "#{try_sudo} touch #{File.join(current_path,'tmp','restart.txt')}"
-#   end
-# end
+set :application, "nodetest"
+set :deploy_to, "/var/www"
+ 
+set :scm, :git
+set :repository, "git@github.com:mafarah/nodetest.git"
+ 
+default_run_options[:pty] = true
+set :user, "node-test"
+set :normalize_asset_timestamps, false
+  
+namespace :deploy do
+	desc "Stop Forever"
+	task :stop do
+		run "forever stopall"
+	end
+	 
+	desc "Start Forever"
+	task :start do
+		run "cd #{current_path} && forever start app.js"
+		puts "current path #{current_path}"
+	end
+	 
+	desc "Restart Forever"
+	task :restart do
+		stop
+		sleep 5
+		start
+	end
+	 
+	desc "Refresh shared node_modules symlink to current node_modules"
+	task :refresh_symlink do
+		run "rm -rf #{current_path}/node_modules && ln -s #{shared_path}/node_modules #{current_path}/node_modules"
+	end
+	 
+	desc "Install node modules non-globally"
+		task :npm_install do
+		run "cd #{current_path} && npm install"
+	end
+end
+ 
+# after "deploy:update_code", "deploy:refresh_symlink", "deploy:npm_install"
