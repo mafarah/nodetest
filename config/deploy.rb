@@ -9,6 +9,10 @@ set :repository, "git@github.com:mafarah/nodetest.git"
 default_run_options[:pty] = true
 set :user, "node-test"
 set :normalize_asset_timestamps, false
+
+#not asking password
+set :ssh_options, { :forward_agent => true }
+set :use_sudo, false
   
 namespace :deploy do
 	desc "Stop Forever"
